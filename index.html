@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Draft Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
+<style>
+  /* Grain Design System tokens (from grain-tokens.css) */
+  :root {
+    --ink-800: rgb(24,24,27);
+    --ink-500: rgb(113,113,122);
+    --ink-400: rgb(117,118,121);
+    --ink-300: rgb(165,166,170);
+    --ink-0:   rgb(255,255,255);
+
+    --surface-raised: rgb(255,255,255);
+    --surface-canvas: rgb(250,250,250);
+
+    --fg-primary:   var(--ink-800);
+    --fg-secondary: var(--ink-500);
+    --fg-tertiary:  var(--ink-400);
+    --fg-muted:     var(--ink-300);
+    --fg-positive:  rgb(16,185,129);
+    --fg-negative:  rgb(244,63,94);
+
+    --live-green:  #28CD41;
+    --leader-green:#009124;
+    --wd-red:      #FF383C;
+
+    --border-subtle:  rgba(0,0,0,0.06);
+    --border-default: rgba(0,0,0,0.10);
+
+    --shadow-card: 0 1.131px 7.781px 0 rgba(16,18,18,0.0121),
+                   0 3.797px 26.133px 0 rgba(16,18,18,0.0179),
+                   0 17px 117px 0 rgba(16,18,18,0.03);
+
+    --radius-sm: 8px;
+    --radius-2xl: 24px;
+
+    --font-sans: "Geist", "Inter", -apple-system, system-ui, sans-serif;
+
+    --text-body-lg: 400 15px/20px var(--font-sans);
+    --text-body:    400 13px/16px var(--font-sans);
+    --text-caption: 400 12px/16px var(--font-sans);
+
+    --track-hero: -0.020em;
+    --track-head: -0.013em;
+    --track-body: -0.003em;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { font-family: var(--font-sans); color: var(--fg-primary); }
+  .app-bg {
+    min-height: 100vh;
+    background:
+      radial-gradient(rgba(252,253,253,0.22) 0%, rgba(244,247,245,0.22) 22%,
+                      rgba(250,243,231,0.22) 38%, rgba(237,227,216,0.22) 56%,
+                      rgba(232,233,231,0.22) 77%, rgba(255,255,255,0.22) 100%),
+      linear-gradient(#fff,#fff);
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 56px 24px 72px; }
+
+  /* Header */
+  .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
+  .overline { font: 500 11px/12px var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-tertiary); margin-bottom: 10px; }
+  h1 { font: 500 32px/36px var(--font-sans); letter-spacing: var(--track-hero); color: var(--fg-primary); margin: 0 0 8px; }
+  .lede { font: var(--text-body-lg); letter-spacing: var(--track-body); color: var(--fg-secondary); max-width: 440px; text-wrap: pretty; }
+  .evt { text-align: right; }
+  .evt-name { font: 500 15px/20px var(--font-sans); letter-spacing: var(--track-head); }
+  .evt-meta { font: var(--text-caption); color: var(--fg-secondary); margin-top: 2px; }
+  .evt-status { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 8px; }
+  .dot { width: 7px; height: 7px; border-radius: 999px; background: var(--fg-muted); flex: none; }
+  .dot.live { background: var(--live-green); }
+  .dot.post { background: var(--ink-800); }
+  @media (prefers-reduced-motion: no-preference) {
+    .dot.live { animation: livePulse 2s ease-in-out infinite; }
+  }
+  @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .evt-detail { font: var(--text-caption); color: var(--fg-secondary); }
+
+  /* Table card */
+  .card { background: var(--surface-raised); border-radius: var(--radius-2xl); box-shadow: var(--shadow-card); overflow: hidden; }
+  .scroller { overflow-x: auto; }
+  .grid { display: grid; grid-template-columns: 56px minmax(0,1fr) 170px 64px; gap: 16px; align-items: center; min-width: 500px; }
+  .cols { padding: 14px 24px 12px; font: 500 11px/12px var(--font-sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-tertiary); }
+  .row { padding: 13px 24px; border-top: 1px solid var(--border-subtle); }
+  .row:hover { background: var(--surface-canvas); }
+  .r { text-align: right; }
+
+  .pickcell { display: flex; align-items: baseline; gap: 7px; }
+  .slotnum { font: 600 20px/24px var(--font-sans); letter-spacing: var(--track-head); font-variant-numeric: tabular-nums; }
+  .delta { font: 500 12px/16px var(--font-sans); font-variant-numeric: tabular-nums; color: var(--fg-muted); }
+  .delta.up { color: var(--fg-positive); }
+  .delta.down { color: var(--fg-negative); }
+
+  .team { min-width: 0; }
+  .person { font: 500 15px/20px var(--font-sans); letter-spacing: var(--track-head); }
+  .golfer { font: var(--text-caption); color: var(--fg-secondary); margin-top: 1px; }
+  .tb { font: 500 11px/14px var(--font-sans); color: var(--fg-tertiary); margin-top: 2px; }
+  .tb.dead { color: var(--fg-negative); }
+  .tb:empty { display: none; }
+
+  .today { font: var(--text-body); color: var(--fg-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .total { font: 500 17px/20px var(--font-sans); letter-spacing: var(--track-head); font-variant-numeric: tabular-nums; color: var(--ink-300); }
+  .total.under { color: var(--fg-positive); }
+  .total.over { color: var(--ink-800); }
+  .total.even { color: var(--ink-500); }
+
+  /* withdrawal marker — the only status the POS column used to carry */
+  .wdtag {
+    display: inline-flex; align-items: center; margin-left: 7px;
+    padding: 1px 6px; border-radius: 6px;
+    font: 500 10px/14px var(--font-sans); letter-spacing: 0.04em;
+    color: var(--wd-red); background: rgba(255,56,60,0.08);
+    box-shadow: inset 0 0 0 0.5px rgba(255,56,60,0.2), inset 0 -2px 3px rgba(255,255,255,0.4);
+    vertical-align: 1px;
+  }
+
+  /* Footer */
+  .foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 14px; padding: 0 4px; }
+  .foot-note { font: var(--text-caption); color: var(--fg-tertiary); max-width: 460px; text-wrap: pretty; }
+  .foot-right { display: flex; align-items: center; gap: 12px; }
+  .err { font: var(--text-caption); color: var(--fg-negative); }
+  .err:empty { display: none; }
+  .updated { font: var(--text-caption); color: var(--fg-secondary); font-variant-numeric: tabular-nums; }
+  .refresh {
+    font: 500 13px/16px var(--font-sans); color: var(--fg-primary);
+    background: transparent; border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm); padding: 6px 12px; cursor: pointer;
+  }
+  .refresh:hover { background: rgba(0,0,0,0.04); }
+  .refresh:active { background: rgba(0,0,0,0.07); }
+  .refresh:focus-visible { outline: none; box-shadow: 0 0 0 1px rgba(0,0,0,0.08); }
+
+  /* ── Phones: the table becomes one card per pick, no sideways scrolling ── */
+  @media (max-width: 620px) {
+    .wrap { padding: 32px 16px 48px; }
+    h1 { font: 500 28px/32px var(--font-sans); letter-spacing: var(--track-hero); }
+    .head { display: block; margin-bottom: 20px; }
+    .lede { max-width: none; margin-top: 6px; }
+    .evt { text-align: left; margin-top: 16px; }
+    .evt-status { justify-content: flex-start; }
+    .card { border-radius: 20px; }
+    .scroller { overflow-x: visible; }
+    .cols { display: none; }
+    .grid { grid-template-columns: 38px minmax(0,1fr) auto; gap: 2px 12px; min-width: 0; }
+    .row { padding: 12px 16px; }
+    .pickcell { grid-column: 1; grid-row: 1; flex-direction: column; align-items: flex-start; gap: 0; }
+    .team { grid-column: 2; grid-row: 1; }
+    .total { grid-column: 3; grid-row: 1; }
+    .today { grid-column: 2 / -1; grid-row: 2; text-align: left; white-space: normal; }
+    .foot { margin-top: 16px; padding: 0; gap: 12px; }
+    .foot-note { max-width: none; }
+    .foot-right { width: 100%; justify-content: space-between; }
+    .refresh { padding: 9px 16px; }
+  }
+</style>
+</head>
+<body class="app-bg">
+<div class="wrap">
+  <div class="head">
+    <div>
+      <div class="overline">Fantasy Football · Draft Lottery</div>
+      <h1>Draft Order</h1>
+      <p class="lede">Where your golfer finishes at the BMW Championship is where you pick. Live scoring, updated automatically.</p>
+    </div>
+    <div class="evt">
+      <div class="evt-name">BMW Championship</div>
+      <div class="evt-meta">Bellerive Country Club · St. Louis · Aug 20–23</div>
+      <div class="evt-status">
+        <span class="dot" id="dot"></span>
+        <span class="evt-detail" id="detail">Scheduled</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="scroller">
+      <div class="grid cols">
+        <div>Pick</div>
+        <div>Team</div>
+        <div class="r">Today</div>
+        <div class="r">Total</div>
+      </div>
+      <div id="rows"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="foot-note">Anyone yet to tee off counts as even par. Ties break on the best score from the last day played. Dead ties fall back to original pick order.</div>
+    <div class="foot-right">
+      <span class="err" id="err"></span>
+      <span class="updated" id="updated">Updated — · auto 60s</span>
+      <button class="refresh" id="refreshBtn" type="button">Refresh</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BEST_FINISH_PICKS_FIRST = true; // false flips scores/positions: worst finish picks first
+const REFRESH_SEC = 60;
+const EVENT_ID = "401811963"; // BMW Championship 2026
+// Pinned to the event so the page keeps serving the BMW result (and never a later
+// tournament) after it rolls off ESPN's default weekly feed.
+const API = "https://site.api.espn.com/apis/site/v2/sports/golf/leaderboard?league=pga&event=" + EVENT_ID;
+const CACHE_KEY = "grain-bmw-draft-v1";
+
+const PICKS = [
+  { pick: 1,  person: "Cam",     golfer: "Scottie Scheffler", espnId: "9478" },
+  { pick: 2,  person: "William", golfer: "Rory McIlroy",      espnId: "3470" },
+  { pick: 3,  person: "Joey",    golfer: "Xander Schauffele", espnId: "10140" },
+  { pick: 4,  person: "Ryan",    golfer: "Ludvig Åberg", espnId: "4375972" },
+  { pick: 5,  person: "Chris",   golfer: "Cam Young",         espnId: "4425906" },
+  { pick: 6,  person: "Blake",   golfer: "Sam Burns",         espnId: "9938" },
+  { pick: 7,  person: "Marc",    golfer: "Wyndham Clark",     espnId: "11119" },
+  { pick: 8,  person: "Cole",    golfer: "Tommy Fleetwood",   espnId: "5539" },
+  { pick: 9,  person: "Keenan",  golfer: "Chris Gotterup",    espnId: "4690755" },
+  { pick: 10, person: "Phil",    golfer: "Viktor Hovland",    espnId: "4364873" },
+  { pick: 11, person: "Phil",    golfer: "Hideki Matsuyama",  espnId: "5860" },
+  { pick: 12, person: "Pete",    golfer: "Si Woo Kim",        espnId: "7081" },
+];
+
+const $ = (id) => document.getElementById(id);
+function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+function toParNum(s) {
+  if (s == null) return null;
+  s = String(s).trim();
+  if (/^e$/i.test(s)) return 0;
+  if (!/^[+-]?\d+$/.test(s)) return null;
+  return parseInt(s.replace("+", ""), 10);
+}
+function fmtPar(n) {
+  if (n == null) return "—";
+  if (n === 0) return "E";
+  return n > 0 ? "+" + n : String(n);
+}
+function normName(s) {
+  return s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z ]/g, "");
+}
+function fmtClock(iso) {
+  try {
+    return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  } catch (e) { return ""; }
+}
+
+// ── Parse one pick's golfer out of the ESPN competitor list ──
+function extract(pick, competitors, evPeriod, evState) {
+  const c = competitors.find((x) => x.athlete && x.athlete.id === pick.espnId)
+    || competitors.find((x) => x.athlete && normName(x.athlete.displayName) === normName(pick.golfer));
+  const out = { ...pick, found: !!c, posText: "—", posNum: null, special: null, total: null,
+    rounds: [null, null, null, null], strokes: [null, null, null, null],
+    period: evPeriod || 1, thru: 0, state: "pre", teeTime: null, playoff: false };
+  if (!c) return out;
+
+  const st = c.status || {};
+  out.state = (st.type && st.type.state) || "pre";
+  out.thru = Number(st.thru) || 0;
+  out.period = Number(st.period) || evPeriod || 1;
+  out.teeTime = st.teeTime || null;
+  out.playoff = !!st.playoff;
+
+  const posName = (st.position && st.position.displayName) || "—";
+  out.posText = posName === "-" ? "—" : posName;
+  const pn = parseInt(String(posName).replace(/^T/i, ""), 10);
+  if (Number.isFinite(pn) && pn > 0) out.posNum = pn;
+  // ESPN puts WD/DQ in status.type (shortDetail "WD", description "Withdrawn"),
+  // while position.displayName just shows "-"
+  const typeTxt = ((st.type && (st.type.shortDetail || "")) + " " + (st.type && (st.type.description || "")) + " " + posName);
+  if (/\bWD\b|WITHDR/i.test(typeTxt)) out.special = "WD";
+  else if (/\bDQ\b|DISQUAL/i.test(typeTxt)) out.special = "DQ";
+  if (out.special) { out.posNum = null; out.posText = out.special; }
+
+  const sp = (c.statistics || []).find((s) => s.name === "scoreToPar");
+  if (sp) out.total = toParNum(sp.displayValue);
+
+  for (const ls of c.linescores || []) {
+    if (ls.isPlayoff || ls.period > 4) continue; // playoff holes never count for the tiebreak
+    const r = ls.period - 1;
+    if (r < 0 || r > 3) continue;
+    const tp = toParNum(ls.displayValue);
+    if (tp != null) out.rounds[r] = tp;
+    // a linescore's value is final strokes once the round is complete
+    const complete = evState === "post" || ls.period < out.period ||
+      (ls.period === out.period && out.thru >= 18);
+    if (complete && Number.isFinite(Number(ls.value)) && Number(ls.value) > 45) {
+      out.strokes[r] = Number(ls.value);
+    }
+  }
+  return out;
+}
+
+// ── Ranking ──────────────────────────────────────────────────
+// Class order (always): golfers in play — anyone yet to tee off counts as even
+// par — then WD/DQ, then not in field. Within play: total to par, then ESPN
+// position when it separates equal totals (playoff), then tiebreak rounds R4
+// down to R1, then original pick order. Comparison is strictly lexicographic
+// over those keys so the ordering stays transitive whatever the feed serves.
+function hasStarted(e) {
+  return e.state === "post" || e.thru > 0 || e.rounds.some((v) => v != null);
+}
+function effTotal(e) {
+  if (e.total != null) return e.total;
+  if (!hasStarted(e)) return 0; // yet to tee off: counts as even par
+  const played = e.rounds.filter((v) => v != null);
+  return played.length ? played.reduce((s, v) => s + v, 0) : 0;
+}
+// A missing value always loses to a present one — flipping the draft direction
+// reverses scores and positions, never "has played" vs "hasn't".
+function cmpNullLast(a, b, dir) {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  return a === b ? 0 : (a - b) * dir;
+}
+
+function rank(entries, dir) {
+  const cls = (e) => (!e.found ? 2 : e.special ? 1 : 0);
+  return [...entries].sort((a, b) => {
+    if (cls(a) !== cls(b)) return cls(a) - cls(b);
+    if (cls(a) !== 0) return a.pick - b.pick;
+    const t = (effTotal(a) - effTotal(b)) * dir;
+    if (t) return t;
+    const p = cmpNullLast(a.posNum, b.posNum, dir);
+    if (p) return p;
+    for (let r = 3; r >= 0; r--) {
+      const c = cmpNullLast(a.rounds[r], b.rounds[r], dir);
+      if (c) return c;
+    }
+    return a.pick - b.pick; // dead tie
+  });
+}
+
+// Tie notes per the design: a golfer separated from the others in their group shows
+// the round that did it ("Tiebreak · R1 −2"); golfers with matching cards show
+// "Dead tie · pick order". Each note states why THAT row sits where it does, so it
+// can never contradict the order on screen. Golfers yet to tee off carry no note —
+// the muted E already says they're being counted as even.
+function annotate(order) {
+  order.forEach((e) => { e.tbNote = ""; e.dead = false; });
+  const groups = new Map();
+  order.forEach((e) => {
+    if (!e.found || e.special || e.loadingText) return;
+    const k = effTotal(e);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(e);
+  });
+  const sig = (e) => e.rounds.map((v) => (v == null ? "x" : v)).join("|");
+  groups.forEach((grp) => {
+    if (grp.length < 2) return;
+    // equal totals split across real ESPN positions were settled in a playoff — not a tie
+    const realPos = new Set(grp.filter((e) => e.posNum != null).map((e) => e.posNum));
+    if (realPos.size > 1) return;
+    const played = grp.filter((e) => e.rounds.some((v) => v != null));
+    if (played.length < 2) return; // no two cards to compare
+    played.forEach((e) => {
+      if (played.some((x) => x !== e && sig(x) === sig(e))) {
+        e.tbNote = "Dead tie · pick order";
+        e.dead = true;
+        return;
+      }
+      for (let r = 3; r >= 0; r--) {
+        if (e.rounds[r] == null) continue;
+        if (played.some((x) => x !== e && x.rounds[r] !== e.rounds[r])) {
+          e.tbNote = "Tiebreak · R" + (r + 1) + " " + fmtPar(e.rounds[r]);
+          return;
+        }
+      }
+    });
+  });
+}
+
+// ── Presentation ─────────────────────────────────────────────
+function todayText(e, evState) {
+  if (e.loadingText) return e.loadingText;
+  if (!e.found) return "Not in the field";
+  if (e.special) {
+    const played = e.strokes.filter((v) => v != null);
+    return played.length ? played.join("-") : "—";
+  }
+  if (evState === "post") {
+    const rs = e.strokes.filter((v) => v != null);
+    return rs.length ? rs.join("-") : "Final";
+  }
+  const p = e.period;
+  if (e.state === "pre" || (e.thru === 0 && e.rounds[p - 1] == null)) {
+    return "R" + p + (e.teeTime ? " · tees " + fmtClock(e.teeTime) : " · not started");
+  }
+  if (e.thru >= 18) {
+    const s = e.strokes[p - 1];
+    return "R" + p + " " + (s != null ? s : fmtPar(e.rounds[p - 1])) + " · F";
+  }
+  return "R" + p + " " + fmtPar(e.rounds[p - 1]) + " · thru " + e.thru;
+}
+
+function render(entries, evMeta, updatedLabel) {
+  const dot = $("dot");
+  dot.className = "dot" + (evMeta.state === "in" ? " live" : evMeta.state === "post" ? " post" : "");
+  $("detail").textContent = evMeta.detail || "Scheduled";
+
+  const order = rank(entries, BEST_FINISH_PICKS_FIRST ? 1 : -1);
+  annotate(order);
+
+  const frag = document.createDocumentFragment();
+  order.forEach((e, i) => {
+    const slot = i + 1;
+    const delta = e.pick - slot;
+    const row = document.createElement("div");
+    row.className = "grid row";
+
+    // a golfer yet to tee off counts as even par: show a muted E, not a blank
+    const scored = !e.loadingText && e.found && !e.special;
+    const tot = scored ? effTotal(e) : null;
+    const totalTxt = scored ? fmtPar(tot) : "—";
+    const totalCls = !scored || e.total == null ? "total" // muted: no card of their own yet
+      : tot < 0 ? "total under" : tot > 0 ? "total over" : "total even";
+    const deltaCls = delta > 0 ? "delta up" : delta < 0 ? "delta down" : "delta";
+    const deltaTxt = delta > 0 ? "↑" + delta : delta < 0 ? "↓" + Math.abs(delta) : "";
+
+    const cells = [
+      ['<div class="pickcell"><span class="slotnum">', String(slot),
+       '</span><span class="', deltaCls, '">', deltaTxt, "</span></div>"],
+      ['<div class="team"><div class="person">', esc(e.person),
+       e.special ? '<span class="wdtag">' + esc(e.special) + "</span>" : "",
+       '</div><div class="golfer">', esc(e.golfer),
+       '</div><div class="tb', e.dead ? " dead" : "", '">', esc(e.tbNote), "</div></div>"],
+      ['<div class="today r">', esc(todayText(e, evMeta.state)), "</div>"],
+      ['<div class="', totalCls, ' r">', totalTxt, "</div>"],
+    ];
+    row.innerHTML = cells.map((c) => c.join("")).join("");
+    frag.appendChild(row);
+  });
+  const rows = $("rows");
+  rows.innerHTML = "";
+  rows.appendChild(frag);
+
+  $("updated").textContent = "Updated " + updatedLabel + " · auto " + REFRESH_SEC + "s";
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// ── Data loading ─────────────────────────────────────────────
+async function load() {
+  try {
+    const res = await fetch(API, { cache: "no-store" });
+    if (!res.ok) throw new Error("http " + res.status);
+    const data = await res.json();
+    const ev = (data.events || []).find((e) => e.id === EVENT_ID)
+      || (data.events || []).find((e) => /bmw/i.test(e.name || ""));
+    if (!ev) throw new Error("no event");
+    const comp = ev.competitions[0];
+    const st = comp.status || {};
+    const evMeta = {
+      state: (st.type && st.type.state) || "pre",
+      detail: (st.type && (st.type.detail || st.type.shortDetail || st.type.description)) || "Scheduled",
+    };
+    const evPeriod = Number(st.period) || 1;
+    const entries = PICKS.map((p) => extract(p, comp.competitors || [], evPeriod, evMeta.state));
+    const updatedLabel = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+    render(entries, evMeta, updatedLabel);
+    $("err").textContent = "";
+    storeSet(CACHE_KEY, JSON.stringify({ entries, evMeta, updatedLabel }));
+  } catch (e) {
+    $("err").textContent = "Live scoring unreachable — retrying";
+  }
+}
+
+// Boot from the cached last good parse so a failed fetch still shows standings;
+// otherwise paint the 12 picks in pick order as a loading state (per the prototype)
+(function boot() {
+  try {
+    const c = JSON.parse(storeGet(CACHE_KEY) || "null");
+    if (c && c.entries) {
+      render(c.entries, c.evMeta, c.updatedLabel + " (cached)");
+      return;
+    }
+  } catch (e) {}
+  const placeholders = PICKS.map((p) => ({ ...p, found: true, special: null, posNum: null,
+    posText: "—", total: null, rounds: [null, null, null, null], strokes: [null, null, null, null],
+    period: 1, thru: 0, state: "pre", teeTime: null, playoff: false, loadingText: "Loading…" }));
+  render(placeholders, { state: "pre", detail: "Scheduled" }, "—");
+})();
+
+$("refreshBtn").addEventListener("click", load);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+setInterval(() => { if (!document.hidden) load(); }, REFRESH_SEC * 1000);
+load();
+</script>
+</body>
+</html>
