@@ -84,29 +84,39 @@
   /* Table card */
   .card { background: var(--surface-raised); border-radius: var(--radius-2xl); box-shadow: var(--shadow-card); overflow: hidden; }
   .scroller { overflow-x: auto; }
-  .grid { display: grid; grid-template-columns: 56px minmax(0,1fr) 170px 64px; gap: 16px; align-items: center; min-width: 500px; }
-  .cols { padding: 14px 24px 12px; font: 500 11px/12px var(--font-sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-tertiary); }
-  .row { padding: 13px 24px; border-top: 1px solid var(--border-subtle); }
+  .grid { display: grid; grid-template-columns: 62px minmax(0,1fr) auto; gap: 16px; align-items: center; }
+  .row { padding: 16px 24px; border-top: 1px solid var(--border-subtle); }
+  .row:first-child { border-top: 0; }
   .row:hover { background: var(--surface-canvas); }
-  .r { text-align: right; }
 
-  .pickcell { display: flex; align-items: baseline; gap: 7px; }
-  .slotnum { font: 600 20px/24px var(--font-sans); letter-spacing: var(--track-head); font-variant-numeric: tabular-nums; }
+  .pickcell { display: flex; align-items: baseline; gap: 8px; }
+  .slotnum { font: 600 26px/30px var(--font-sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
   .delta { font: 500 12px/16px var(--font-sans); font-variant-numeric: tabular-nums; color: var(--fg-muted); }
   .delta.up { color: var(--fg-positive); }
   .delta.down { color: var(--fg-negative); }
 
   .team { min-width: 0; }
-  .person { font: 500 15px/20px var(--font-sans); letter-spacing: var(--track-head); }
-  .golfer { font: var(--text-caption); color: var(--fg-secondary); margin-top: 1px; }
-  .tb { font: 500 11px/14px var(--font-sans); color: var(--fg-tertiary); margin-top: 2px; }
+  .person { font: 600 17px/22px var(--font-sans); letter-spacing: var(--track-head); }
+  .golfer { font: 400 13px/18px var(--font-sans); color: var(--fg-secondary); }
+  .subline { font: 400 13px/18px var(--font-sans); color: var(--fg-secondary); }
+  .subline:empty { display: none; }
+  .tb { font: 500 11px/16px var(--font-sans); color: var(--fg-tertiary); }
   .tb:empty { display: none; }
 
-  .today { font: var(--text-body); color: var(--fg-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .total { font: 500 17px/20px var(--font-sans); letter-spacing: var(--track-head); font-variant-numeric: tabular-nums; color: var(--ink-300); }
-  .total.under { color: var(--fg-positive); }
-  .total.over { color: var(--ink-800); }
-  .total.even { color: var(--ink-500); }
+  /* Per-row stat strip: label above value, hairline rules between columns */
+  .stats { display: flex; align-items: center; }
+  .stat { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 2px 11px; }
+  .stat.ruled { border-left: 1px solid var(--border-subtle); }
+  .lbl { font: 500 11px/12px var(--font-sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-tertiary); white-space: nowrap; }
+  .val { font: 500 15px/20px var(--font-sans); font-variant-numeric: tabular-nums; color: var(--ink-300); }
+  .val.under { color: var(--fg-positive); }
+  .val.over { color: var(--ink-800); }
+  .val.even { color: var(--ink-500); }
+  .val.plain { color: var(--ink-800); }
+  .stat.rd { min-width: 34px; }
+  .stat.thru { min-width: 46px; }
+  .stat.tot { min-width: 56px; }
+  .stat.tot .val { font: 600 17px/20px var(--font-sans); letter-spacing: var(--track-head); }
 
   /* withdrawal marker — the only status the POS column used to carry */
   .wdtag {
@@ -142,13 +152,18 @@
     .evt-status { justify-content: flex-start; }
     .card { border-radius: 20px; }
     .scroller { overflow-x: visible; }
-    .cols { display: none; }
-    .grid { grid-template-columns: 38px minmax(0,1fr) auto; gap: 2px 12px; min-width: 0; }
-    .row { padding: 12px 16px; }
+    .grid { grid-template-columns: 40px minmax(0,1fr); gap: 10px 12px; }
+    .row { padding: 14px 14px 12px; }
     .pickcell { grid-column: 1; grid-row: 1; flex-direction: column; align-items: flex-start; gap: 0; }
+    .slotnum { font: 600 24px/28px var(--font-sans); }
     .team { grid-column: 2; grid-row: 1; }
-    .total { grid-column: 3; grid-row: 1; }
-    .today { grid-column: 2 / -1; grid-row: 2; text-align: left; white-space: normal; }
+    /* stat strip drops to its own full-width line and spreads out */
+    .stats { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; }
+    .stat { flex: 1; padding: 2px 0; }
+    .stat.rd, .stat.thru, .stat.tot { min-width: 0; }
+    .stat.ruled { border-left: 0; }
+    .stat.tot { align-items: flex-end; }
+    .stat.thru { align-items: flex-start; }
     .foot { margin-top: 16px; padding: 0; gap: 12px; }
     .foot-right { width: 100%; justify-content: space-between; }
     .refresh { padding: 9px 16px; }
@@ -174,12 +189,6 @@
 
   <div class="card">
     <div class="scroller">
-      <div class="grid cols">
-        <div>Pick</div>
-        <div>Team</div>
-        <div class="r">Today</div>
-        <div class="r">Total</div>
-      </div>
       <div id="rows"></div>
     </div>
   </div>
@@ -365,26 +374,32 @@ function annotate(order) {
 }
 
 // ── Presentation ─────────────────────────────────────────────
-function todayText(e, evState) {
-  if (e.loadingText) return e.loadingText;
+// Holes played in the round underway: "F" once it's done, "—" before the tee time.
+function thruText(e, evState) {
+  if (e.loadingText || !e.found || e.special) return "—";
+  if (evState === "post" || e.thru >= 18) return "F";
+  if (e.state === "pre" || (e.thru === 0 && e.rounds[e.period - 1] == null)) return "—";
+  return String(e.thru);
+}
+
+// Line under the golfer's name: their tee time, or why there's no score at all.
+function subline(e) {
+  if (e.loadingText) return "";
   if (!e.found) return "Not in the field";
-  if (e.special) {
-    const played = e.strokes.filter((v) => v != null);
-    return played.length ? played.join("-") : "—";
-  }
-  if (evState === "post") {
-    const rs = e.strokes.filter((v) => v != null);
-    return rs.length ? rs.join("-") : "Final";
-  }
-  const p = e.period;
-  if (e.state === "pre" || (e.thru === 0 && e.rounds[p - 1] == null)) {
-    return "R" + p + (e.teeTime ? " · tees " + fmtClock(e.teeTime) : " · not started");
-  }
-  if (e.thru >= 18) {
-    const s = e.strokes[p - 1];
-    return "R" + p + " " + (s != null ? s : fmtPar(e.rounds[p - 1])) + " · F";
-  }
-  return "R" + p + " " + fmtPar(e.rounds[p - 1]) + " · thru " + e.thru;
+  if (e.special) return e.special === "WD" ? "Withdrew" : "Disqualified";
+  if (e.state === "pre" && e.teeTime) return "Tees off " + fmtClock(e.teeTime);
+  return "";
+}
+
+// Under par reads green, over par dark, level grey, nothing yet muted.
+function parCls(v) {
+  return v == null ? "" : v < 0 ? "under" : v > 0 ? "over" : "even";
+}
+
+// One column of the stat strip: small uppercase label stacked over a tabular value.
+function statCell(label, value, valCls, boxCls) {
+  return '<div class="stat ' + boxCls + '"><span class="lbl">' + label +
+    '</span><span class="val ' + valCls + '">' + value + "</span></div>";
 }
 
 function render(entries, evMeta, updatedLabel) {
@@ -406,10 +421,16 @@ function render(entries, evMeta, updatedLabel) {
     const scored = !e.loadingText && e.found && !e.special;
     const tot = scored ? effTotal(e) : null;
     const totalTxt = scored ? fmtPar(tot) : "—";
-    const totalCls = !scored || e.total == null ? "total" // muted: no card of their own yet
-      : tot < 0 ? "total under" : tot > 0 ? "total over" : "total even";
+    const totalCls = !scored || e.total == null ? "" // muted: no card of their own yet
+      : tot < 0 ? "under" : tot > 0 ? "over" : "even";
     const deltaCls = delta > 0 ? "delta up" : delta < 0 ? "delta down" : "delta";
     const deltaTxt = delta > 0 ? "↑" + delta : delta < 0 ? "↓" + Math.abs(delta) : "";
+    const thru = thruText(e, evMeta.state);
+
+    const rounds = [0, 1, 2, 3].map((r) => {
+      const v = scored ? e.rounds[r] : null;
+      return statCell("R" + (r + 1), v == null ? "—" : fmtPar(v), parCls(v), "rd ruled");
+    }).join("");
 
     const cells = [
       ['<div class="pickcell"><span class="slotnum">', String(slot),
@@ -417,9 +438,13 @@ function render(entries, evMeta, updatedLabel) {
       ['<div class="team"><div class="person">', esc(e.person),
        e.special ? '<span class="wdtag">' + esc(e.special) + "</span>" : "",
        '</div><div class="golfer">', esc(e.golfer),
+       '</div><div class="subline">', esc(subline(e)),
        '</div><div class="tb">', esc(e.tbNote), "</div></div>"],
-      ['<div class="today r">', esc(todayText(e, evMeta.state)), "</div>"],
-      ['<div class="', totalCls, ' r">', totalTxt, "</div>"],
+      ['<div class="stats">',
+       statCell("Thru", thru, thru === "—" ? "" : "plain", "thru"),
+       rounds,
+       statCell("Total", totalTxt, totalCls, "tot ruled"),
+       "</div>"],
     ];
     row.innerHTML = cells.map((c) => c.join("")).join("");
     frag.appendChild(row);
