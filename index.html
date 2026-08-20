@@ -68,7 +68,6 @@
   .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
   .overline { font: 500 11px/12px var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-tertiary); margin-bottom: 10px; }
   h1 { font: 500 32px/36px var(--font-sans); letter-spacing: var(--track-hero); color: var(--fg-primary); margin: 0 0 8px; }
-  .lede { font: var(--text-body-lg); letter-spacing: var(--track-body); color: var(--fg-secondary); max-width: 440px; text-wrap: pretty; }
   .evt { text-align: right; }
   .evt-name { font: 500 15px/20px var(--font-sans); letter-spacing: var(--track-head); }
   .evt-meta { font: var(--text-caption); color: var(--fg-secondary); margin-top: 2px; }
@@ -101,7 +100,6 @@
   .person { font: 500 15px/20px var(--font-sans); letter-spacing: var(--track-head); }
   .golfer { font: var(--text-caption); color: var(--fg-secondary); margin-top: 1px; }
   .tb { font: 500 11px/14px var(--font-sans); color: var(--fg-tertiary); margin-top: 2px; }
-  .tb.dead { color: var(--fg-negative); }
   .tb:empty { display: none; }
 
   .today { font: var(--text-body); color: var(--fg-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -121,8 +119,7 @@
   }
 
   /* Footer */
-  .foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 14px; padding: 0 4px; }
-  .foot-note { font: var(--text-caption); color: var(--fg-tertiary); max-width: 460px; text-wrap: pretty; }
+  .foot { display: flex; justify-content: flex-end; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 14px; padding: 0 4px; }
   .foot-right { display: flex; align-items: center; gap: 12px; }
   .err { font: var(--text-caption); color: var(--fg-negative); }
   .err:empty { display: none; }
@@ -141,7 +138,6 @@
     .wrap { padding: 32px 16px 48px; }
     h1 { font: 500 28px/32px var(--font-sans); letter-spacing: var(--track-hero); }
     .head { display: block; margin-bottom: 20px; }
-    .lede { max-width: none; margin-top: 6px; }
     .evt { text-align: left; margin-top: 16px; }
     .evt-status { justify-content: flex-start; }
     .card { border-radius: 20px; }
@@ -154,7 +150,6 @@
     .total { grid-column: 3; grid-row: 1; }
     .today { grid-column: 2 / -1; grid-row: 2; text-align: left; white-space: normal; }
     .foot { margin-top: 16px; padding: 0; gap: 12px; }
-    .foot-note { max-width: none; }
     .foot-right { width: 100%; justify-content: space-between; }
     .refresh { padding: 9px 16px; }
   }
@@ -166,7 +161,6 @@
     <div>
       <div class="overline">Fantasy Football · Draft Lottery</div>
       <h1>Draft Order</h1>
-      <p class="lede">Where your golfer finishes at the BMW Championship is where you pick. Live scoring, updated automatically.</p>
     </div>
     <div class="evt">
       <div class="evt-name">BMW Championship</div>
@@ -191,7 +185,6 @@
   </div>
 
   <div class="foot">
-    <div class="foot-note">Anyone yet to tee off counts as even par. Ties break on the best score from the last day played. Dead ties fall back to original pick order.</div>
     <div class="foot-right">
       <span class="err" id="err"></span>
       <span class="updated" id="updated">Updated — · auto 60s</span>
@@ -336,13 +329,13 @@ function rank(entries, dir) {
   });
 }
 
-// Tie notes per the design: a golfer separated from the others in their group shows
-// the round that did it ("Tiebreak · R1 −2"); golfers with matching cards show
-// "Dead tie · pick order". Each note states why THAT row sits where it does, so it
-// can never contradict the order on screen. Golfers yet to tee off carry no note —
-// the muted E already says they're being counted as even.
+// Tie notes: a golfer separated from the others in their group shows the round that
+// did it ("Tiebreak · R1 −2"). Golfers with matching cards are left in pick order
+// without a note, as are golfers yet to tee off — the muted E already says they're
+// being counted as even. Each note states why THAT row sits where it does, so it can
+// never contradict the order on screen.
 function annotate(order) {
-  order.forEach((e) => { e.tbNote = ""; e.dead = false; });
+  order.forEach((e) => { e.tbNote = ""; });
   const groups = new Map();
   order.forEach((e) => {
     if (!e.found || e.special || e.loadingText) return;
@@ -359,11 +352,7 @@ function annotate(order) {
     const played = grp.filter((e) => e.rounds.some((v) => v != null));
     if (played.length < 2) return; // no two cards to compare
     played.forEach((e) => {
-      if (played.some((x) => x !== e && sig(x) === sig(e))) {
-        e.tbNote = "Dead tie · pick order";
-        e.dead = true;
-        return;
-      }
+      if (played.some((x) => x !== e && sig(x) === sig(e))) return; // matching cards: no note
       for (let r = 3; r >= 0; r--) {
         if (e.rounds[r] == null) continue;
         if (played.some((x) => x !== e && x.rounds[r] !== e.rounds[r])) {
@@ -428,7 +417,7 @@ function render(entries, evMeta, updatedLabel) {
       ['<div class="team"><div class="person">', esc(e.person),
        e.special ? '<span class="wdtag">' + esc(e.special) + "</span>" : "",
        '</div><div class="golfer">', esc(e.golfer),
-       '</div><div class="tb', e.dead ? " dead" : "", '">', esc(e.tbNote), "</div></div>"],
+       '</div><div class="tb">', esc(e.tbNote), "</div></div>"],
       ['<div class="today r">', esc(todayText(e, evMeta.state)), "</div>"],
       ['<div class="', totalCls, ' r">', totalTxt, "</div>"],
     ];
